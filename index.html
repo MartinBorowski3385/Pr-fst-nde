@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meine Prüfstände</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+            background-image: url('https://www.lbf.fraunhofer.de/de/projekte/multiaxialer-systempruefstand-flugzeugtueren/jcr:content/contentPar/sectioncomponent_cop/sectionParsys/wideimage/imageComponent/image.img.4col.jpg/1652445021306/pruefstand-flugzeugtuer-uebersicht-144px.jpg'); /* Beispiel-Hintergrund */
+            background-size: cover;
+            background-position: center;
+            color: white;
+        }
+        .status {
+            font-size: 24px;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin: 10px;
+            background-color: rgba(0, 0, 0, 0.6); /* Halbtransparenter Hintergrund für bessere Lesbarkeit */
+        }
+        .on { background-color: #4CAF50; color: white; }
+        .off { background-color: #F44336; color: white; }
+    </style>
+</head>
+<body>
+    <h1>Meine Prüfstände</h1>
+    <div id="status0" class="status">Lade Niederdruck Ch1...</div>
+    <div id="status1" class="status">Lade Hochdruck Ch1...</div>
+    <div id="status2" class="status">Lade 24V Ein...</div>
+
+    <div id="status3" class="status">Lade Hochdruck Ch2...</div>
+    
+    <script>
+        const names = ["Niederdruck Ch1", "Hochdruck Ch1", "24V Ein", "Hochdruck Ch2"];
+        
+        async function fetchShellyStatus() {
+            try {
+                const response = await fetch('http://shelly-i4dc.lbf.fraunhofer.de/rpc/Input.GetStatus?id=0');
+                const data = await response.json();
+                
+                for (let i = 0; i < 4; i++) {
+                    const statusDiv = document.getElementById(`status${i}`);
+                    const response = await fetch(`http://shelly-i4dc.lbf.fraunhofer.de/rpc/Input.GetStatus?id=${i}`);
+                    const inputData = await response.json();
+                    
+                    if (inputData.state) {
+                        statusDiv.textContent = `${names[i]}: EIN`;
+                        statusDiv.className = "status on";
+                    } else {
+                        statusDiv.textContent = `${names[i]}: AUS`;
+                        statusDiv.className = "status off";
+                    }
+                }
+            } catch (error) {
+                console.error("Fehler beim Abrufen der Shelly-Daten:", error);
+                for (let i = 0; i < 4; i++) {
+                    document.getElementById(`status${i}`).textContent = `Fehler beim Abrufen des Status von ${names[i]}`;
+                }
+            }
+        }
+        
+        fetchShellyStatus();
+        setInterval(fetchShellyStatus, 5000); // Alle 5 Sekunden aktualisieren
+    </script>
+</body>
+</html>
